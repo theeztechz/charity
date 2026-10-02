@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hands Together – Donate</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#fbf8f3;--card:#fff;--text:#1f2a24;--muted:#66726b;--accent:#2f7d5b;--accent2:#e8f3ed;--line:#e6e0d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a17;--card:#1c2420;--text:#eef3ef;--muted:#9aa8a0;--accent:#5cc79a;--accent2:#22332b;--line:#2c3832}}
+:root[data-theme="dark"]{--bg:#141a17;--card:#1c2420;--text:#eef3ef;--muted:#9aa8a0;--accent:#5cc79a;--accent2:#22332b;--line:#2c3832}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 Georgia,'Times New Roman',serif}
+.w{max-width:1000px;margin:0 auto;padding:20px 18px}
+h1,h2,h3{line-height:1.2;margin:0 0 .5em}
+h1{font-size:2.1rem}h2{font-size:1.5rem;margin-top:1.8em}
+p{margin:.4em 0}.m{color:var(--muted);font-size:.92rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+.bar{height:10px;background:var(--accent2);border-radius:99px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.row{display:flex;justify-content:space-between;gap:10px;font-family:system-ui,sans-serif;font-size:.9rem}
+.btn{display:inline-block;background:var(--accent);color:#fff;border:0;border-radius:10px;padding:13px 20px;font:600 1rem system-ui,sans-serif;text-decoration:none;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:99px;padding:9px 16px;font:600 .95rem system-ui,sans-serif;cursor:pointer}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}.grid .card{margin:0}.more{display:block;margin:16px auto}
+.hero{padding:18px 0 4px}
+.tag{display:inline-block;background:var(--accent2);color:var(--accent);border-radius:99px;padding:2px 10px;font:600 .75rem system-ui,sans-serif}
+#impact{font-family:system-ui,sans-serif;min-height:1.5em}
+</style>
+</head>
+<body>
+<div class="w">
+<div class="hero">
+  <span class="tag">100% transparent giving</span>
+  <h1>Hands Together</h1>
+  <p>Every donation goes directly to families who need it. See exactly where your money goes and who it helps.</p>
+  <div class="card">
+    <div class="row"><b>$<span id="raised"></span> raised</b><span>Goal $<span id="goal"></span></span></div>
+    <div class="bar"><i id="mainbar"></i></div>
+    <div class="m"><span id="donors"></span> donors so far</div>
+    <p style="margin-top:14px"><a class="btn" href="#give">Donate now</a></p>
+  </div>
+</div>
+
+<h2>Where your money goes</h2>
+<div id="alloc" class="grid"></div>
+
+<h2>Who needs help</h2>
+<p class="m">Real people, with real needs. Names shared with permission.</p>
+<input id="search" type="search" placeholder="Search people or causes" style="display:none;width:100%;padding:12px;margin:8px 0;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:1rem system-ui,sans-serif">
+<div id="people" class="grid"></div>
+<button class="chip more" id="more" style="display:none">Show more</button>
+
+<h2 id="give">Give</h2>
+<div class="card">
+  <p>Choose an amount:</p>
+  <div class="chips" id="chips"></div>
+  <input id="custom" type="number" min="1" inputmode="decimal" placeholder="Or enter your own amount" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:1rem system-ui,sans-serif">
+  <div id="impact" class="m" style="margin-top:8px"></div>
+  <p style="margin-top:14px"><a class="btn" id="pay" href="#" target="_blank" rel="noopener">Donate with PayPal</a></p>
+  <p><a class="btn" id="gw" style="display:none" target="_blank" rel="noopener">Donate by card / UPI / netbanking</a></p>
+  <p><a class="btn" id="upi" style="display:none;background:#5f259f">Pay with UPI</a></p>
+  <p class="m" id="paynote">You'll be taken to PayPal's secure payment page.</p>
+  <p class="m" id="bank"></p>
+</div>
+
+<h2>Updates</h2>
+<div id="updates" class="grid"></div>
+
+<p class="m" style="margin-top:2em;text-align:center">Questions? contact@example.org · Updated monthly</p>
+</div>
+
+<script>
+/* ===== EDIT THIS SECTION WITH YOUR REAL INFO ===== */
+const PAYPAL_USERNAME = ""; // your PayPal.Me name, e.g. "MariaCharity" (paypal.me/MariaCharity)
+const UPI_ID = "";          // optional, for India: your UPI ID, e.g. "name@upi"
+const PAYMENT_PAGE_URL = ""; // Razorpay Payment Page link (donations here update totals automatically)
+const UPI_NAME = "Hands Together";
+const CURRENCY = "USD";     // e.g. USD, EUR, GBP
+const BANK_DETAILS = "";    // optional, e.g. "Bank: ABC Bank | Name: Hands Together | Acc: 123456789"
+// Leave RAISED as null to auto-add up the "raised" amounts of everyone in the people list
+const RAISED = null, goal = 0, donors = 0, PAGE_SIZE = 6;
+const allocation = [
+  ["Food & groceries", 0, ""],
+  ["Medical care", 0, ""],
+  ["School support", 0, ""],
+  ["Emergency fund", 0, ""],
+  ["Running costs", 0, ""]
+];
+// Allocation numbers are weights; percentages are worked out automatically.
+// Add people like: ["Name", "Their story", amountNeeded, amountRaised]
+const people = [];
+// Describe what each amount achieves, e.g. 25: "Feeds a family for a week"
+const impacts = {10:"",25:"",50:"",100:""};
+// Add updates like: ["Month Year", "What you did"]
+const updates = [];
+/* ================================================== */
+
+const $ = id => document.getElementById(id), fmt = n => n.toLocaleString();
+const raised = RAISED !== null ? RAISED : people.reduce((t,p)=>t+(+p[3]||0),0);
+$("raised").textContent = fmt(raised); $("goal").textContent = fmt(goal); $("donors").textContent = donors;
+$("mainbar").style.width = (goal ? Math.min(100, raised/goal*100) : 0) + "%";
+
+const tot = allocation.reduce((t,a)=>t+a[1],0);
+$("alloc").innerHTML = allocation.map(a => { const pc = tot ? Math.round(a[1]/tot*100) : 0; return `<div class="card"><div class="row"><b>${a[0]}</b><b>${pc}%</b></div><div class="bar"><i style="width:${pc}%"></i></div>${a[2]?`<div class="m">${a[2]}</div>`:""}</div>`}).join("");
+
+let shown = PAGE_SIZE, q = "";
+function renderPeople(){
+  const list = people.filter(p => (p[0]+" "+p[1]).toLowerCase().includes(q));
+  const part = list.slice(0, shown);
+  $("people").innerHTML = !part.length ? '<div class="card m">'+(people.length?"No matches.":"No cases added yet.")+'</div>' : part.map(p => `<div class="card"><h3>${p[0]}</h3><p>${p[1]}</p><div class="bar"><i style="width:${p[2]?Math.min(100,p[3]/p[2]*100):0}%"></i></div><div class="row"><span>$${fmt(p[3])} raised</span><span>Needs $${fmt(p[2])}</span></div></div>`).join("");
+  $("more").style.display = list.length > shown ? "block" : "none";
+  $("search").style.display = people.length > PAGE_SIZE ? "block" : "none";
+}
+$("more").onclick = () => { shown += PAGE_SIZE; renderPeople(); };
+$("search").oninput = e => { q = e.target.value.toLowerCase(); shown = PAGE_SIZE; renderPeople(); };
+renderPeople();
+
+$("updates").innerHTML = !updates.length ? '<div class="card m">No updates yet.</div>' : updates.map(u => `<div class="card"><span class="tag">${u[0]}</span><p>${u[1]}</p></div>`).join("");
+
+function setAmount(a){
+  if (UPI_ID) { const u=$("upi"); u.style.display="inline-block"; u.href="upi://pay?pa="+encodeURIComponent(UPI_ID)+"&pn="+encodeURIComponent(UPI_NAME)+"&am="+a+"&cu=INR"; }
+  $("pay").textContent = "Donate $" + a + " with PayPal";
+  if (PAYPAL_USERNAME) {
+    $("pay").href = "https://www.paypal.me/" + encodeURIComponent(PAYPAL_USERNAME) + "/" + a + CURRENCY;
+  } else {
+    $("pay").removeAttribute("href");
+    $("paynote").textContent = "Payment link not set up yet. Add your PayPal.Me name in the code.";
+  }
+}
+function pick(a, el){
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  el.classList.add("on");
+  $("custom").value = "";
+  $("impact").textContent = impacts[a] ? "$" + a + ": " + impacts[a] : "";
+  setAmount(a);
+}
+$("custom").oninput = e => {
+  const v = parseFloat(e.target.value);
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  $("impact").textContent = "";
+  if (v > 0) setAmount(v);
+};
+if (BANK_DETAILS) $("bank").textContent = "Prefer bank transfer? " + BANK_DETAILS;
+Object.keys(impacts).forEach((a, i) => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.textContent = "$" + a;
+  b.onclick = () => pick(a, b);
+  $("chips").appendChild(b);
+  if (i === 1) pick(a, b);
+});
+
+if (PAYMENT_PAGE_URL) { $("gw").style.display="inline-block"; $("gw").href=PAYMENT_PAGE_URL; }
+// Live totals: works once the backend in /functions is deployed (same domain)
+function loadTotals(){
+  fetch("/api/total").then(r => r.ok ? r.json() : null).then(d => {
+    if (!d) return;
+    $("raised").textContent = fmt(d.raised); $("donors").textContent = fmt(d.donors);
+    $("mainbar").style.width = (goal ? Math.min(100, d.raised/goal*100) : 0) + "%";
+  }).catch(() => {});
+}
+loadTotals(); setInterval(loadTotals, 60000);
+</script>
+</body>
+</html>
